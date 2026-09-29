@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      PORT: 3000
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      MARKET_DATA_MODE: ${MARKET_DATA_MODE:-daily}
+      STOCK_SYMBOLS: ${STOCK_SYMBOLS:-AAPL,MSFT,NVDA,TSLA}
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    depends_on: [web]
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3001:3000"]
+    depends_on: [prometheus]

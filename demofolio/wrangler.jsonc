@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "utc-united-trading-company",
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2026-09-29",
+  "vars": {
+    "MARKET_DATA_MODE": "daily",
+    "STOCK_SYMBOLS": "AAPL,MSFT,NVDA,TSLA"
+  }
+}

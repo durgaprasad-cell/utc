@@ -1,0 +1,8 @@
+node_modules
+*.log
+.terraform
+*.tfstate*
+.env
+.dev.vars
+.wrangler
+_worker.bundle

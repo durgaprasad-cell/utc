@@ -1,0 +1,17 @@
+{
+  "name": "demofolio",
+  "version": "1.0.0",
+  "description": "Paper-trading simulator with fake data, built for DevOps practice",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "dev:cloudflare": "wrangler pages dev",
+    "deploy:cloudflare": "wrangler pages deploy --branch main"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.143.0"
+  }
+}

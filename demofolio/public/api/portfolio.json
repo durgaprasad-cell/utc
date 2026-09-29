@@ -1,0 +1,8 @@
+{
+  "simulated": true,
+  "holdings": [
+    { "symbol": "DEMO-A", "qty": 12, "price": 101.5 },
+    { "symbol": "DEMO-B", "qty": 4, "price": 250.0 },
+    { "symbol": "DEMO-C", "qty": 30, "price": 18.2 }
+  ]
+}

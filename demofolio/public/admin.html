@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Administrator | UTC — United Trading Company</title><link rel="stylesheet" href="style.css"></head><body>
+<header><div class="header-top"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 32"><path d="M3 7 12 14 20 2l8 12 9-7-5 20H8L3 7Zm6 24h22"/></svg></span><span class="brand-name">UNITED TRADING COMPANY<small>TRADE · CONNECT · TRANSFORM</small></span></a><div class="header-contact"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Administrator</span></span><a href="index.html">Home</a></div></div><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="admin.html" aria-current="page">User access</a></nav></header>
+<main class="admin-main">
+  <div class="admin-heading"><div><p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span> ACCESS CONTROL</p><h1>User access</h1><p>Invite an email identity to the UTC site through Cloudflare Access.</p></div><span class="admin-access-status" id="admin-access-status" role="status" aria-live="polite">Checking administrator access…</span></div>
+  <section class="admin-content" aria-labelledby="add-user-title">
+    <h2 id="add-user-title">Add a user</h2>
+    <form id="user-form">
+      <label for="user-email">Email address</label>
+      <div class="admin-form-row"><input id="user-email" name="email" type="email" autocomplete="email" maxlength="254" required placeholder="name@company.com"><button class="button-link admin-submit" type="submit">Add access <span aria-hidden="true">&#8594;</span></button></div>
+      <p class="admin-form-status" id="user-form-status" role="status" aria-live="polite"></p>
+    </form>
+    <div class="user-list-heading"><h2>Authorized users</h2><button class="admin-refresh" id="reload-users" type="button" aria-label="Refresh authorized users" title="Refresh authorized users"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 11.9-3"/></svg></button></div>
+    <ul class="admin-user-list" id="user-list" aria-live="polite"><li>Loading users…</li></ul>
+  </section>
+  <p class="admin-security-note">Cloudflare Access controls sign-in. Adding an email grants access to this site; it does not create trade permissions or grant administrator rights.</p>
+</main>
+<footer>UTC administrator controls. All access changes are applied through Cloudflare Access.</footer>
+<script>
+  const userList = document.getElementById("user-list");
+  const accessStatus = document.getElementById("admin-access-status");
+  const formStatus = document.getElementById("user-form-status");
+  const form = document.getElementById("user-form");
+  const submitButton = form.querySelector("button[type='submit']");
+
+  function showMessage(target, message) {
+    target.textContent = message;
+  }
+
+  async function loadUsers() {
+    userList.replaceChildren(Object.assign(document.createElement("li"), { textContent: "Loading users…" }));
+    try {
+      const response = await fetch("/api/admin/users", { headers: { Accept: "application/json" } });
+      const payload = await response.json();
+      if (!response.ok) throw Object.assign(new Error(payload.error?.message || "Could not load users."), { status: response.status });
+
+      const items = (payload.users || []).map((email) => {
+        const item = document.createElement("li");
+        const icon = document.createElement("span");
+        icon.className = "user-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = email.slice(0, 1).toUpperCase();
+        const address = document.createElement("span");
+        address.className = "user-email";
+        address.textContent = email;
+        item.append(icon, address);
+        return item;
+      });
+      userList.replaceChildren(...(items.length ? items : [Object.assign(document.createElement("li"), { textContent: "No users are listed in the Access policy." })]));
+      showMessage(accessStatus, "Administrator access verified");
+    } catch (error) {
+      userList.replaceChildren(Object.assign(document.createElement("li"), { textContent: error.message }));
+      showMessage(accessStatus, error.status === 403 ? "Administrator access required" : "Access configuration unavailable");
+    }
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    submitButton.disabled = true;
+    showMessage(formStatus, "Adding user…");
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: new FormData(form).get("email") })
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error?.message || "Could not add the user.");
+      form.reset();
+      showMessage(formStatus, payload.created ? `${payload.email} can now sign in with Cloudflare Access.` : `${payload.email} already has access.`);
+      await loadUsers();
+    } catch (error) {
+      showMessage(formStatus, error.message);
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
+  document.getElementById("reload-users").addEventListener("click", loadUsers);
+  loadUsers();
+</script></body></html>
